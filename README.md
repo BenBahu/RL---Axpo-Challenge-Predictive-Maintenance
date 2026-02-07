@@ -1,185 +1,185 @@
-# Projet de Maintenance Prédictive - Détection d'Anomalies dans les Centrales Hydroélectriques
+# Predictive Maintenance Project - Anomaly Detection in Hydroelectric Power Plants
 
 ## 📋 Description
 
-Ce projet vise à développer un système de détection d'anomalies pour les opérations de vannes dans les centrales hydroélectriques. Il se concentre sur l'analyse des séquences de fermeture de vannes et la détection de comportements anormaux à l'aide de techniques d'apprentissage automatique avancées.
+This project aims to develop an anomaly detection system for valve operations in hydroelectric power plants. It focuses on analyzing valve closing sequences and detecting abnormal behaviors using advanced machine learning techniques.
 
-Le projet est structuré en deux tâches principales :
-- **Task 1** : Préprocessing des données et détermination des temps de fermeture/ouverture des vannes avec un réseau TCN (Temporal Convolutional Network)
-- **Task 2** : Détection d'anomalies avec Autoencodeur et classification des types d'anomalies avec HDBSCAN
+The project is structured into two main tasks:
+- **Task 1**: Data preprocessing and determination of valve closing/opening times using a TCN (Temporal Convolutional Network)
+- **Task 2**: Anomaly detection with Autoencoder and classification of anomaly types using HDBSCAN
 
-## 🏭 Contexte Industriel
+## 🏭 Industrial Context
 
-Les données proviennent d'une centrale hydroélectrique (KSL) avec :
-- **3 groupes de machines** : MG1, MG2, MG3
-- **2 étages** : Mapragg et Sarelli
-- **Signaux mesurés** :
-  - Puissance active (MW)
-  - Position des vannes à bille (ouvert/fermé)
-  - Position des guide-vanes (%)
-  - Pression d'eau en amont et en aval (bar)
+The data comes from a hydroelectric power plant (KSL) with:
+- **3 machine groups**: MG1, MG2, MG3
+- **2 stages**: Mapragg and Sarelli
+- **Measured signals**:
+  - Active power (MW)
+  - Ball valve position (open/closed)
+  - Guide vane position (%)
+  - Water pressure upstream and downstream (bar)
 
-## 📁 Structure du Projet
+## 📁 Project Structure
 
 ```
 .
-├── GroupA_Task1.ipynb              # Préprocessing et analyse des données
-├── GroupA_Task2.ipynb              # Autoencodeur et HDBSCAN pour détection d'anomalies
-├── GroupA_anomaliesGeneration.py   # Bibliothèque de génération d'anomalies synthétiques
-├── GroupA_Report.pdf               # Rapport détaillé du projet
-└── README.md                       # Ce fichier
+├── GroupA_Task1.ipynb              # Data preprocessing and analysis
+├── GroupA_Task2.ipynb              # Autoencoder and HDBSCAN for anomaly detection
+├── GroupA_anomaliesGeneration.py   # Synthetic anomaly generation library
+├── GroupA_Report.pdf               # Detailed project report
+└── README.md                       # This file
 ```
 
-## 🔧 Tâche 1 : Préprocessing et Analyse
+## 🔧 Task 1: Preprocessing and Analysis
 
-### Objectifs
-1. **Préprocessing des données** :
-   - Synchronisation des signaux temporels
-   - Détection et gestion des gaps dans les données
-   - Segmentation des séries temporelles
-   - Lissage avec moyenne mobile exponentielle (EMA)
+### Objectives
+1. **Data preprocessing**:
+   - Temporal signal synchronization
+   - Gap detection and handling in data
+   - Time series segmentation
+   - Smoothing with exponential moving average (EMA)
 
-2. **Détection des transitions** :
-   - Identification des événements d'ouverture/fermeture des vannes
-   - Extraction des fenêtres temporelles autour des transitions
+2. **Transition detection**:
+   - Identification of valve opening/closing events
+   - Extraction of temporal windows around transitions
 
-3. **Détermination des temps de fermeture/ouverture** :
-   - Utilisation d'un réseau TCN (Temporal Convolutional Network)
-   - Prédiction précise des durées de transition
+3. **Closing/opening time determination**:
+   - Use of a TCN (Temporal Convolutional Network)
+   - Accurate prediction of transition durations
 
-4. **Détection d'anomalies** :
-   - Analyse des séquences de fermeture pour identifier des comportements anormaux
+4. **Anomaly detection**:
+   - Analysis of closing sequences to identify abnormal behaviors
 
-### Paramètres Principaux
+### Main Parameters
 ```python
-GAP_THRESHOLD_SECONDS = 3600   # Seuil pour la segmentation (1 heure)
-MIN_POINTS_PER_SEGMENT = 100   # Nombre minimum de points par segment
-EMA_ALPHA = 0.1                # Facteur de lissage EMA
+GAP_THRESHOLD_SECONDS = 3600   # Threshold for segmentation (1 hour)
+MIN_POINTS_PER_SEGMENT = 100   # Minimum number of points per segment
+EMA_ALPHA = 0.1                # EMA smoothing factor
 ```
 
-### Fonctionnalités Clés
-- **Analyse des gaps** : Identification des interruptions dans les données
-- **Segmentation** : Division des séries temporelles en segments continus
-- **Normalisation temporelle** : Alignement des signaux sur une grille temporelle uniforme
-- **Détection de transitions** : Identification automatique des changements d'état des vannes
+### Key Features
+- **Gap analysis**: Identification of interruptions in data
+- **Segmentation**: Division of time series into continuous segments
+- **Temporal normalization**: Alignment of signals on a uniform temporal grid
+- **Transition detection**: Automatic identification of valve state changes
 
-## 🤖 Tâche 2 : Détection d'Anomalies avec Autoencodeur
+## 🤖 Task 2: Anomaly Detection with Autoencoder
 
-### Objectifs
-1. **Extraction de fenêtres** :
-   - Fenêtres de 360 secondes (180 avant + 180 après) centrées sur les transitions de fermeture
-   - Séparation des régimes turbine (puissance > 0) et pompe (puissance ≤ 0)
+### Objectives
+1. **Window extraction**:
+   - 360-second windows (180 before + 180 after) centered on closing transitions
+   - Separation of turbine regime (power > 0) and pump regime (power ≤ 0)
 
-2. **Entraînement d'autoencodeurs** :
-   - Autoencodeur séparé pour chaque régime (turbine/pompe)
-   - Réduction de dimension et reconstruction des séquences normales
-   - Calcul des erreurs de reconstruction comme score d'anomalie
+2. **Autoencoder training**:
+   - Separate autoencoder for each regime (turbine/pump)
+   - Dimension reduction and reconstruction of normal sequences
+   - Calculation of reconstruction errors as anomaly score
 
-3. **Classification des types d'anomalies** :
-   - Utilisation de HDBSCAN pour le clustering des anomalies
-   - Estimation de probabilité conjointe des types d'anomalies
-   - Identification de patterns d'anomalies récurrents
+3. **Anomaly type classification**:
+   - Use of HDBSCAN for anomaly clustering
+   - Joint probability estimation of anomaly types
+   - Identification of recurring anomaly patterns
 
 ### Architecture
-- **Données d'entraînement** : Fenêtres de fermeture normales
-- **Données de test** : Fenêtres normales et anormales
-- **Métrique** : Erreur de reconstruction (MSE) pour détecter les anomalies
+- **Training data**: Normal closing windows
+- **Test data**: Normal and abnormal windows
+- **Metric**: Reconstruction error (MSE) to detect anomalies
 
-## 🧪 Génération d'Anomalies Synthétiques
+## 🧪 Synthetic Anomaly Generation
 
-Le module `GroupA_anomaliesGeneration.py` fournit une bibliothèque complète pour générer des anomalies synthétiques dans les séquences de fermeture de vannes.
+The `GroupA_anomaliesGeneration.py` module provides a comprehensive library for generating synthetic anomalies in valve closing sequences.
 
-### Types d'Anomalies Implémentées
+### Implemented Anomaly Types
 
-1. **Spikes (Pointes)** : `inject_closing_spikes`
-   - Pointes isolées dans la séquence de fermeture
-   - Amplitude configurable en multiples de l'écart-type local
+1. **Spikes**: `inject_closing_spikes`
+   - Isolated spikes in the closing sequence
+   - Configurable amplitude in multiples of local standard deviation
 
-2. **Level Shift (Changement de niveau)** : `inject_closing_level_shift`
-   - Décalage constant de la moyenne sur un segment
-   - Simule un changement de régime soudain
+2. **Level Shift**: `inject_closing_level_shift`
+   - Constant mean shift over a segment
+   - Simulates a sudden regime change
 
-3. **Linear Drift (Dérive linéaire)** : `inject_closing_linear_drift`
-   - Dérive linéaire progressive sur un segment
-   - Simule une dégradation graduelle
+3. **Linear Drift**: `inject_closing_linear_drift`
+   - Progressive linear drift over a segment
+   - Simulates gradual degradation
 
-4. **Variance Change (Changement de variance)** : `inject_closing_variance_change`
-   - Augmentation ou diminution de la volatilité
-   - Simule des bursts de bruit ou un amortissement
+4. **Variance Change**: `inject_closing_variance_change`
+   - Increase or decrease in volatility
+   - Simulates noise bursts or damping
 
-5. **Sinusoidal (Oscillation sinusoïdale)** : `inject_closing_sinusoidal`
-   - Oscillation périodique ajoutée
-   - Simule des vibrations mécaniques ou résonances
+5. **Sinusoidal**: `inject_closing_sinusoidal`
+   - Added periodic oscillation
+   - Simulates mechanical vibrations or resonances
 
-6. **Delayed Closure (Fermeture retardée)** : `inject_closing_delayed_closure`
-   - Décalage temporel de la séquence de fermeture
-   - Simule des retards mécaniques ou de contrôle
+6. **Delayed Closure**: `inject_closing_delayed_closure`
+   - Temporal shift of the closing sequence
+   - Simulates mechanical or control delays
 
-7. **Water Hammer Spike (Pointe de coup de bélier)** : `inject_closing_water_hammer_spike`
-   - Amplification d'un pic existant
-   - Simule des pics de pression dangereux
+7. **Water Hammer Spike**: `inject_closing_water_hammer_spike`
+   - Amplification of an existing peak
+   - Simulates dangerous pressure spikes
 
-8. **Signal Dropout (Perte de signal)** : `inject_closing_signal_dropout`
-   - Perte temporaire de signal (valeurs à zéro)
-   - Simule des pannes de capteurs ou problèmes de communication
+8. **Signal Dropout**: `inject_closing_signal_dropout`
+   - Temporary signal loss (values set to zero)
+   - Simulates sensor failures or communication issues
 
-9. **Time Warp (Déformation temporelle)** : `inject_closing_time_warp`
-   - Accélération ou ralentissement de la séquence
-   - Simule une fermeture trop rapide ou trop lente
+9. **Time Warp**: `inject_closing_time_warp`
+   - Acceleration or deceleration of the sequence
+   - Simulates closing that is too fast or too slow
 
-### Caractéristiques
-- Toutes les anomalies sont injectées uniquement dans la **séquence de fermeture** (indices [180, 360))
-- Placement biaisé vers le centre de transition (autour de l'index 200)
-- Paramètres configurables pour chaque type d'anomalie
-- Reproducibilité via `random_state`
+### Features
+- All anomalies are injected only in the **closing sequence** (indices [180, 360))
+- Placement biased towards transition center (around index 200)
+- Configurable parameters for each anomaly type
+- Reproducibility via `random_state`
 
-## 📊 Données
+## 📊 Data
 
-### Format des Données
-- **Format d'entrée** : Fichiers Parquet avec colonnes :
-  - `ts` : Timestamp
-  - `signal_id` : Identifiant du signal
-  - `value` : Valeur mesurée
+### Data Format
+- **Input format**: Parquet files with columns:
+  - `ts`: Timestamp
+  - `signal_id`: Signal identifier
+  - `value`: Measured value
 
-### Signaux Disponibles
-- `active_power` : Puissance active (MW)
-- `ball_valve_open` : Vanne ouverte (booléen)
-- `ball_valve_closed` : Vanne fermée (booléen)
-- `guide_vane_position` : Position des guide-vanes (%)
-- `water_pressure_upstream` : Pression amont (bar)
-- `water_pressure_downstream` : Pression aval (bar)
+### Available Signals
+- `active_power`: Active power (MW)
+- `ball_valve_open`: Valve open (boolean)
+- `ball_valve_closed`: Valve closed (boolean)
+- `guide_vane_position`: Guide vane position (%)
+- `water_pressure_upstream`: Upstream pressure (bar)
+- `water_pressure_downstream`: Downstream pressure (bar)
 
-## 🚀 Utilisation
+## 🚀 Usage
 
-### Prérequis
+### Prerequisites
 ```bash
 pip install pandas numpy matplotlib seaborn scikit-learn torch scipy hdbscan optuna tqdm pyarrow
 ```
 
-### Exécution de Task 1
-1. Ouvrir `GroupA_Task1.ipynb`
-2. Configurer les paramètres de preprocessing
-3. Exécuter les cellules pour :
-   - Charger et mapper les signaux
-   - Préprocesser les données
-   - Extraire les transitions
-   - Entraîner le modèle TCN
-   - Détecter les anomalies
+### Running Task 1
+1. Open `GroupA_Task1.ipynb`
+2. Configure preprocessing parameters
+3. Execute cells to:
+   - Load and map signals
+   - Preprocess data
+   - Extract transitions
+   - Train TCN model
+   - Detect anomalies
 
-### Exécution de Task 2
-1. Ouvrir `GroupA_Task2.ipynb`
-2. Configurer les chemins de données (`DATA_DIR`, `OUTPUT_DIR`)
-3. Exécuter les cellules pour :
-   - Préprocesser les données et extraire les fenêtres
-   - Entraîner les autoencodeurs (turbine et pompe)
-   - Appliquer HDBSCAN pour la classification
-   - Évaluer les performances
+### Running Task 2
+1. Open `GroupA_Task2.ipynb`
+2. Configure data paths (`DATA_DIR`, `OUTPUT_DIR`)
+3. Execute cells to:
+   - Preprocess data and extract windows
+   - Train autoencoders (turbine and pump)
+   - Apply HDBSCAN for classification
+   - Evaluate performance
 
-### Génération d'Anomalies
+### Anomaly Generation
 ```python
 from GroupA_anomaliesGeneration import inject_closing_spikes, inject_closing_level_shift
 
-# Exemple : Injection de spikes
+# Example: Injecting spikes
 window_perturbed, spike_indices = inject_closing_spikes(
     window=normal_window,
     n_spikes=5,
@@ -187,7 +187,7 @@ window_perturbed, spike_indices = inject_closing_spikes(
     random_state=42
 )
 
-# Exemple : Injection de level shift
+# Example: Injecting level shift
 window_shifted, (start, end), shift = inject_closing_level_shift(
     window=normal_window,
     segment_length=50,
@@ -196,41 +196,41 @@ window_shifted, (start, end), shift = inject_closing_level_shift(
 )
 ```
 
-## 📈 Résultats
+## 📈 Results
 
-Le projet permet de :
-- ✅ Préprocesser efficacement les données de capteurs industriels
-- ✅ Détecter automatiquement les transitions de vannes
-- ✅ Prédire les durées de fermeture/ouverture avec précision
-- ✅ Identifier les anomalies dans les séquences de fermeture
-- ✅ Classifier les types d'anomalies détectées
-- ✅ Générer des anomalies synthétiques pour l'augmentation de données
+The project enables:
+- ✅ Efficient preprocessing of industrial sensor data
+- ✅ Automatic detection of valve transitions
+- ✅ Accurate prediction of closing/opening durations
+- ✅ Identification of anomalies in closing sequences
+- ✅ Classification of detected anomaly types
+- ✅ Generation of synthetic anomalies for data augmentation
 
-## 📝 Notes Techniques
+## 📝 Technical Notes
 
-### Fenêtres Temporelles
-- **Taille** : 360 secondes (180 avant + 180 après la transition)
-- **Centrage** : Sur les événements de fermeture de vannes
-- **Normalisation** : Standardisation (moyenne=0, écart-type=1)
+### Temporal Windows
+- **Size**: 360 seconds (180 before + 180 after transition)
+- **Centering**: On valve closing events
+- **Normalization**: Standardization (mean=0, std=1)
 
-### Régimes Opérationnels
-- **Turbine** : `active_power > 0` (production d'électricité)
-- **Pompe** : `active_power ≤ 0` (pompage)
+### Operational Regimes
+- **Turbine**: `active_power > 0` (electricity production)
+- **Pump**: `active_power ≤ 0` (pumping)
 
-### Gestion des Gaps
-- Forward fill jusqu'à 5 minutes
-- Gaps plus longs laissés comme NaN
-- Segmentation automatique sur gaps > 1 heure
+### Gap Handling
+- Forward fill up to 5 minutes
+- Longer gaps left as NaN
+- Automatic segmentation on gaps > 1 hour
 
-## 👥 Auteurs
+## 👥 Authors
 
-Groupe A - EPFL MA3 - Machine Learning for Predictive Maintenance
+Group A - EPFL MA3 - Machine Learning for Predictive Maintenance
 
-## 📄 Licence
+## 📄 License
 
-Ce projet est réalisé dans le cadre d'un cours académique à l'EPFL.
+This project is developed as part of an academic course at EPFL.
 
-## 🔗 Références
+## 🔗 References
 
-- Rapport détaillé : `GroupA_Report.pdf`
-- Documentation des notebooks : Voir les commentaires dans les cellules
+- Detailed report: `GroupA_Report.pdf`
+- Notebook documentation: See comments in cells
